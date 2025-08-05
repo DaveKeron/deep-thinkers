@@ -1,21 +1,64 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Deep Thinkers</title>
-  <meta property="og:title" content="Deep Thinkers: Reasoning Game" />
-  <meta property="og:description" content="How well can you think? Play Deep Thinkers and score based on clarity, depth, logic, and creativity!" />
-  <meta property="og:image" content="https://yourgameurl.com/assets/deep-thinkers-preview.png" />
-  <meta property="og:url" content="https://yourgameurl.com" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Deep Thinkers: Reasoning Game" />
-  <meta name="twitter:description" content="Put your thinking to the test!" />
-  <meta name="twitter:image" content="https://yourgameurl.com/assets/deep-thinkers-preview.png" />
-
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      margin-top: 0.5rem;
+    }
+    button {
+      margin-top: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    #summary {
+      margin-top: 3rem;
+      padding: 1rem;
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+    }
+    #scoreChart {
+      max-width: 500px;
+      margin: 2rem auto;
+    }
+    #tips, #leaderboard {
+      max-width: 500px;
+      margin: 1rem auto;
+      padding: 1rem;
+    }
+    #tips {
+      background: #fff8e1;
+      border-left: 4px solid #ffc107;
+    }
+    #leaderboard {
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+    }
+    #playAgain, #shareResults {
+      display: flex;
+      justify-content: center;
+      margin-top: 1rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
   <h1>Deep Thinkers</h1>
@@ -27,6 +70,122 @@
   <div id="shareResults"></div>
   <div id="playAgain"></div>
 
-  <script src="scripts.js"></script>
+  <script>
+    const prompts = [
+      {
+        round: "Why Is That True?",
+        question: "Water boils at 100°C. Why is that true?",
+      },
+      {
+        round: "Twist It",
+        question: "What would happen if gravity stopped working?",
+      },
+      {
+        round: "Apply It Elsewhere",
+        question: "Apply natural selection to startup success.",
+      },
+      {
+        round: "Socratic Showdown",
+        question: "Is technological progress always good?",
+      }
+    ];
+
+    let currentRound = 0;
+    let scores = [];
+
+    function startGame() {
+      showPrompt();
+    }
+
+    function showPrompt() {
+      const prompt = prompts[currentRound];
+      const gameDiv = document.getElementById("game");
+      gameDiv.innerHTML = \`
+        <h2>Round: \${prompt.round}</h2>
+        <p><strong>Prompt:</strong> \${prompt.question}</p>
+        <textarea id="response" placeholder="Write your explanation..."></textarea>
+        <br>
+        <button onclick="submitResponse()">Submit</button>
+      \`;
+    }
+
+    function submitResponse() {
+      const response = document.getElementById("response").value;
+      if (!response.trim()) {
+        alert("Please write your explanation.");
+        return;
+      }
+
+      const roundScore = {
+        clarity: Math.floor(Math.random() * 10) + 1,
+        depth: Math.floor(Math.random() * 15) + 1,
+        logic: Math.floor(Math.random() * 10) + 1,
+        creativity: Math.floor(Math.random() * 10) + 1,
+      };
+      roundScore.total = roundScore.clarity + roundScore.depth + roundScore.logic + roundScore.creativity;
+      scores.push(roundScore);
+
+      currentRound++;
+      if (currentRound < prompts.length) {
+        showPrompt();
+      } else {
+        showSummary();
+      }
+    }
+
+    function showSummary() {
+      let total = 0;
+      let clarity = 0, depth = 0, logic = 0, creativity = 0;
+
+      scores.forEach(s => {
+        clarity += s.clarity;
+        depth += s.depth;
+        logic += s.logic;
+        creativity += s.creativity;
+        total += s.total;
+      });
+
+      const summaryDiv = document.getElementById("summary");
+      summaryDiv.innerHTML = \`
+        <h2>Game Summary</h2>
+        <p><strong>Combined Score:</strong> \${total}</p>
+        <ul>
+          <li>Clarity of Thought: \${clarity}</li>
+          <li>Depth of Understanding: \${depth}</li>
+          <li>Logical Reasoning: \${logic}</li>
+          <li>Creativity / Insight: \${creativity}</li>
+        </ul>
+      \`;
+
+      renderChart(clarity, depth, logic, creativity);
+
+      document.getElementById("playAgain").innerHTML = \`
+        <button onclick="window.location.reload()">🔁 Play Again</button>
+      \`;
+    }
+
+    function renderChart(clarity, depth, logic, creativity) {
+      const ctx = document.getElementById("scoreChart").getContext("2d");
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Clarity', 'Depth', 'Logic', 'Creativity'],
+          datasets: [{
+            label: 'Score Breakdown',
+            data: [clarity, depth, logic, creativity],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true, max: 60 }
+          }
+        }
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", startGame);
+  </script>
 </body>
 </html>
